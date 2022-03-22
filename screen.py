@@ -10,6 +10,7 @@ class Screen(Tk):
     def __init__(self):
         '''
         @author Joe Targett
+      
 
         Set up window and initialise global variables
         '''
@@ -67,9 +68,9 @@ class Screen(Tk):
         self.content.grid(column=1, row=1, sticky=(N, S, E, W), pady=10)
         self.content.grid_columnconfigure(0, minsize=100)
         self.content.grid_columnconfigure(1, minsize=100)
-        self.header = Frame(self, name='headerFrame', bg="light blue", height=40)
+        self.header = Frame(self, name='headerFrame', bg="light gray", height=40)
         self.header.grid(column=0, columnspan=2, row=0,sticky=(N, S, E, W))
-        title = ttk.Label(self.header, name='titleLabel', textvariable=self.headerText, font=("Arial", 25), background="light blue")
+        title = ttk.Label(self.header, name='titleLabel', textvariable=self.headerText, font=("Arial", 40), background="light gray")
         title.grid(column=0, row=0)
 
         self.columnconfigure(0, weight=1)
@@ -100,7 +101,7 @@ class Screen(Tk):
 
     def validate_login(self, username : str, password : str) -> bool:
         '''
-        @author Joe Targett
+        
         Sends login information to the Database server and sends result of login.
         '''
         self.database = Database(UID=username.get(), PWD=password.get())
@@ -113,7 +114,7 @@ class Screen(Tk):
 
     def clear_contents(self):
         '''
-        @author Joe Targett
+        
 
         Clears all widgets - except self.content. frame - for new screen draw
         '''
@@ -126,8 +127,7 @@ class Screen(Tk):
 
     def login_screen(self):
         '''
-        @author Kasper Hansen
-        @author Joe Targett
+        
 
         Renders the login screen and handles the underlying logic.
         '''
@@ -450,7 +450,7 @@ class Screen(Tk):
 
     def order_details_screen(self):
         '''
-        @author Joe Targett
+      
 
         Renders Order Details Screen
         '''
@@ -584,8 +584,7 @@ class Screen(Tk):
 
     def list_customer_screen(self):
         '''
-        @author David Nash
-        @author Joe Targett
+      
 
         Renders customer list screen
         '''

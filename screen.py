@@ -9,8 +9,6 @@ class Screen(Tk):
 
     def __init__(self):
         '''
-        @author Joe Targett
-
         Set up window and initialise global variables
         '''
         Tk.__init__(self)
@@ -100,7 +98,6 @@ class Screen(Tk):
 
     def validate_login(self, username : str, password : str) -> bool:
         '''
-        @author Joe Targett
         Sends login information to the Database server and sends result of login.
         '''
         self.database = Database(UID=username.get(), PWD=password.get())
@@ -113,8 +110,6 @@ class Screen(Tk):
 
     def clear_contents(self):
         '''
-        @author Joe Targett
-
         Clears all widgets - except self.content. frame - for new screen draw
         '''
         for i in self.winfo_children():
@@ -126,9 +121,6 @@ class Screen(Tk):
 
     def login_screen(self):
         '''
-        @author Kasper Hansen
-        @author Joe Targett
-
         Renders the login screen and handles the underlying logic.
         '''
         self.clear_contents()
@@ -450,8 +442,6 @@ class Screen(Tk):
 
     def order_details_screen(self):
         '''
-        @author Joe Targett
-
         Renders Order Details Screen
         '''
         self.clear_contents()
@@ -567,8 +557,6 @@ class Screen(Tk):
 
     def list_order_screen(self):
         '''
-        @author Joe Targett
-
         Renders Order Screen
         '''
         self.clear_contents()
@@ -584,9 +572,6 @@ class Screen(Tk):
 
     def list_customer_screen(self):
         '''
-        @author David Nash
-        @author Joe Targett
-
         Renders customer list screen
         '''
         self.clear_contents()

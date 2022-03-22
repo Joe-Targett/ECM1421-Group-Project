@@ -9,7 +9,6 @@ class Screen(Tk):
 
     def __init__(self):
         '''
-        @author Joe Targett
       
 
         Set up window and initialise global variables

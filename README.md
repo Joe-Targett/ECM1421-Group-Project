@@ -26,11 +26,3 @@ def main():
 ```
 
 When in trusted login mode, be sure not to return to the login screen.
-
----
-
-## Catch
-
-Be sure before submission that all files comments have author tags replaced with student IDs or are removed
-
-Sorry for the code, it is a small mess. Most code is in the [screen.py](/screen.py) file. But I blame that on Tkinter, not myself or any of us.

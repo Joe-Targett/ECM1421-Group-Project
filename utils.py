@@ -3,19 +3,19 @@ import os
 
 class Database():
 
-    def __init__(self, server = 'localhost', port = '1433', database = 'NymptonFoodHub', UID = '', PWD = ''):
-        '''Sets up database object by initialising a connection to the database
-        @author David Nash
-        @author Joe Targett
-        Skeleton by David Nash, Translated to OOP by Joe Targett, Parameterised by Joe Targett, Cross-platform by Joe Targett, exception Safe by Joe Targett'''
+    def __init__(self, server = 'localhost', port = '1443', database = 'NymptonFoodHub', UID = False, PWD = False):
+        '''Sets up database object by initialising a connection to the database'''
         try:
             self.connection = odbc.connect(f"Driver={'{SQL Server}' if os.name == 'nt' else '{ODBC Driver 17 for SQL Server}'};"
-                                            f"Server={server + (',' + port) if len(port) > 0 else None};"
+                                            f"Server=.\SQLEXPRESS;"
                                             f"Database={database};"
                                             f"{('UID='+UID) if len(UID) > 0 and len(PWD) > 0 else ''};"
                                             f"{('PWD='+PWD) if len(PWD) > 0 and len(PWD) > 0 else ''};"
-                                            f"{('Trusted_Connection=yes') if len(PWD) <= 0 and len(PWD) <= 0 else ''};")
+                                            f"{('Trusted_Connection=yes') if (UID == False) and (UID == False) else ''};")
+            self.isValidLogin = True
+        
         except odbc.Error as ex:
+            self.isValidLogin = False
             if ex.args[0] == '01000':
                 print(f'Could not find driver for SQL Server, have you got it `installed?\n\tError:\n\t{ex.args[1]}\nIf your os is unix-like you will need the ODBC driver for SQL Server')
             else:
@@ -48,7 +48,7 @@ class Database():
         results = cursor.fetchall()
         return results
 
-    def stringToSQLString(myString):
+    def stringToSQLString(self, myString):
         """ Takes ' and turns it into '' to allow SQL to understand it, accounts for names like O'Connor """
         newString = ''
         if (type(myString) is str):

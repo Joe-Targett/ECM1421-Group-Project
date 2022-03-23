@@ -9,8 +9,6 @@ class Screen(Tk):
 
     def __init__(self):
         '''
-      
-
         Set up window and initialise global variables
         '''
         Tk.__init__(self)
@@ -19,6 +17,7 @@ class Screen(Tk):
         self.selectedStreet = StringVar()
         self.headerText = StringVar()
         self.selectedID = StringVar()
+        self.selectedID.set('-1')
         self.selectedTown = StringVar()
         self.selectedFirstName = StringVar()
         self.selectedLastName = StringVar()
@@ -44,6 +43,7 @@ class Screen(Tk):
         self.additionalInfo = StringVar()
         self.deliveryInfo = StringVar()
         self.selectedOrderID = StringVar()
+        self.selectedOrderID.set('-1')
         self.selectedOrderDate = StringVar()
         self.selectedOrderPicked = StringVar()
         self.selectedOrderDelivered = StringVar()
@@ -90,20 +90,16 @@ class Screen(Tk):
         self.content.rowconfigure(11, weight=1)
         self.content.rowconfigure(12, weight=1)
 
-    def set_database(self, database):
-        '''
-        Allow manual override of the database.
-
-        CAUTION - THIS SHOULD NOT BE USED AND CAN CAUSE ERRORS!
-        '''
-        self.database = database
-
     def validate_login(self, username : str, password : str) -> bool:
         '''
-        
         Sends login information to the Database server and sends result of login.
         '''
+        
         self.database = Database(UID=username.get(), PWD=password.get())
+        if (not self.database.isValidLogin or username.get() == '' or password.get() == ''):
+            messagebox.showerror("Login Error", "Your username or password was incorrect, please try again.")
+            return False
+
         if isinstance(self.database, Database):
             self.list_customer_screen()
             return True
@@ -113,8 +109,6 @@ class Screen(Tk):
 
     def clear_contents(self):
         '''
-        
-
         Clears all widgets - except self.content. frame - for new screen draw
         '''
         for i in self.winfo_children():
@@ -126,8 +120,6 @@ class Screen(Tk):
 
     def login_screen(self):
         '''
-        
-
         Renders the login screen and handles the underlying logic.
         '''
         self.clear_contents()
@@ -155,7 +147,7 @@ class Screen(Tk):
     def add_customers(self):
         '''Gets the customers from the database and creates tkinter table'''
 
-        customers = self.database.execute("SELECT cont.id,cont.firstname,cont.lastname,cont.street,cont.town,cont.postcode,cont.county,cont.phonelandline,cont.phonemobile,cont.email,cust.addliinfo,cust.deliveryinfo FROM Customer as cust INNER JOIN Contact as cont ON cust.contactid = cont.id")
+        customers = self.database.execute("SELECT cont.id,cont.firstname,cont.lastname,cont.street,cont.town,cont.postcode,cont.county,cont.phonelandline,cont.phonemobile,cont.email,cust.addliinfo,cust.deliveryinfo FROM Customer as cust INNER JOIN Contact as cont ON cust.contactid = cont.id ORDER BY cont.lastname, cont.firstname")
         for item in self.customerTable.get_children():
             self.customerTable.delete(item)
         for customer in customers:
@@ -419,6 +411,7 @@ class Screen(Tk):
 
     def addPermission(self):
         """ Checks if the current user has permission to add a new user """
+        hasPermission = True
         username = "'PAUser'"
         query = ("SELECT DP1.Name\
         FROM sys.database_role_members AS DRM\
@@ -428,64 +421,70 @@ class Screen(Tk):
         ON DRM.member_principal_id = DP2.principal_id\
         WHERE DP2.Name = " + username + "")
         results = self.database.execute(query)
-        count = 0
         for row in results:
-            if (row[count] == 'Manager' or row[count] == 'TeamLeader'):
-                return True
-            count += 1
-        return False
+            if (row[0] == 'Employee'):
+                hasPermission = False
+        return hasPermission
 
     def add_customer(self, *args):
         """ Adds a customer to the database using the data inputted """
-        if self.addPermission() :
-            if not len(args) < 13:
-                for i in args:
-                    if not isinstance(i, StringVar):
-                        messagebox.showerror("Add Customer Error", "Sorry, something went wrong when trying to add a new customer.")
-                        return None
-                self.database.sql_insert(f"INSERT INTO Contact (firstName, lastName, street, town, postcode, county, phoneLandline, phoneMobile, phone3, email, what3words) VALUES ('{self.database.stringToSQLString(self.firstName.get())}', '{self.database.stringToSQLString(self.lastName.get())}', '{self.database.stringToSQLString(self.street.get())}', '{self.database.stringToSQLString(self.town.get())}', '{self.database.stringToSQLString(self.postcode.get())}', '{self.database.stringToSQLString(self.county.get())}', '{self.database.stringToSQLString(self.phoneLandline.get())}', '{self.database.stringToSQLString(self.phoneMobile.get())}', '{self.database.stringToSQLString(self.phone3.get())}', '{self.database.stringToSQLString(self.email.get())}', '{self.database.stringToSQLString(self.what3words.get())}')", 'Contact')
+        if self.addPermission():
+            if self.firstName.get():
+                if not len(args) < 13:
+                    for i in args:
+                        if not isinstance(i, StringVar):
+                            messagebox.showerror("Add Customer Error", "Sorry, something went wrong when trying to add a new customer.")
+                            return None
+                    self.database.sql_insert(f"INSERT INTO Contact (firstName, lastName, street, town, postcode, county, phoneLandline, phoneMobile, phone3, email, what3words) VALUES ('{self.database.stringToSQLString(self.firstName.get())}', '{self.database.stringToSQLString(self.lastName.get())}', '{self.database.stringToSQLString(self.street.get())}', '{self.database.stringToSQLString(self.town.get())}', '{self.database.stringToSQLString(self.postcode.get())}', '{self.database.stringToSQLString(self.county.get())}', '{self.database.stringToSQLString(self.phoneLandline.get())}', '{self.database.stringToSQLString(self.phoneMobile.get())}', '{self.database.stringToSQLString(self.phone3.get())}', '{self.database.stringToSQLString(self.email.get())}', '{self.database.stringToSQLString(self.what3words.get())}')", 'Contact')
+                    messagebox.showinfo("Add Customer Success", "You just added a new customer with the name: " + self.firstName.get() + " " + self.lastName.get())
+                    self.list_customer_screen()
+            else:
+                messagebox.showerror("Null Error", "Sorry, you must enter a first name.")
         else:
             messagebox.showerror("Permission Error", "Sorry, you don't have permission to add a new customer.")
 
     def order_details_screen(self):
         '''
-      
-
         Renders Order Details Screen
         '''
-        self.clear_contents()
-        self.change_header(f'Order Details - {self.selectedOrderID.get()}')
+        if (self.selectedOrderID.get() != '-1'):
+            self.clear_contents()
+            self.orderIDText = StringVar()
+            self.orderIDText.set(self.selectedOrderID.get())
+            self.change_header(f'Order Details - {self.selectedOrderID.get()}')
 
-        self.get_order_details()
+            self.get_order_details()
 
-        ttk.Label(self.content, text="ID", borderwidth=2, relief="groove").grid(row=0, column=0)
-        ttk.Label(self.content, text="Date", borderwidth=2, relief="groove").grid(row=1, column=0)
-        ttk.Label(self.content, text="Picked", borderwidth=2, relief="groove").grid(row=2, column=0)
-        ttk.Label(self.content, text="Delivered", borderwidth=2, relief="groove").grid(row=3, column=0)
-        ttk.Label(self.content, text="Invoiced", borderwidth=2, relief="groove").grid(row=4, column=0)
-        ttk.Label(self.content, text="Paid", borderwidth=2, relief="groove").grid(row=5, column=0)
-        ttk.Label(self.content, text="Goods £", borderwidth=2, relief="groove").grid(row=6, column=0)
-        ttk.Label(self.content, text="Extras Info", borderwidth=2, relief="groove").grid(row=7, column=0)
-        ttk.Label(self.content, text="Extras Cost", borderwidth=2, relief="groove").grid(row=8, column=0)
-        ttk.Label(self.content, text="Delivery £", borderwidth=2, relief="groove").grid(row=9, column=0)
-        ttk.Label(self.content, text="Total £", borderwidth=2, relief="groove").grid(row=10, column=0)
-        idEntry = ttk.Entry(self.content, text=self.selectedOrderID, state=DISABLED)
-        idEntry.grid(row=0, column=1)
-        dateEntry = ttk.Entry(self.content, text=str(self.selectedOrderDate), state=DISABLED)
-        dateEntry.grid(row=1, column=1)
-        ttk.Entry(self.content, text=self.selectedOrderPicked, state=DISABLED).grid(row=2, column=1)
-        ttk.Entry(self.content, text=self.selectedOrderDelivered, state=DISABLED).grid(row=3, column=1)
-        ttk.Entry(self.content, text=self.selectedOrderInvoiced, state=DISABLED).grid(row=4, column=1)
-        ttk.Entry(self.content, text=self.selectedOrderPaid, state=DISABLED).grid(row=5, column=1)
-        ttk.Entry(self.content, text=self.selectedOrderGoodsCost, state=DISABLED).grid(row=6, column=1)
-        ttk.Entry(self.content, text=self.selectedOrderExtrasInfo, state=DISABLED).grid(row=7, column=1)
-        ttk.Entry(self.content, text=self.selectedOrderExtrasCost, state=DISABLED).grid(row=8, column=1)
-        ttk.Entry(self.content, text=self.selectedOrderDeliveryCost, state=DISABLED).grid(row=9, column=1)
-        ttk.Entry(self.content, text=self.selectedOrderTotalCost, state=DISABLED).grid(row=10, column=1)
+            ttk.Label(self.content, text="ID", borderwidth=2, relief="groove").grid(row=0, column=0)
+            ttk.Label(self.content, text="Date", borderwidth=2, relief="groove").grid(row=1, column=0)
+            ttk.Label(self.content, text="Picked", borderwidth=2, relief="groove").grid(row=2, column=0)
+            ttk.Label(self.content, text="Delivered", borderwidth=2, relief="groove").grid(row=3, column=0)
+            ttk.Label(self.content, text="Invoiced", borderwidth=2, relief="groove").grid(row=4, column=0)
+            ttk.Label(self.content, text="Paid", borderwidth=2, relief="groove").grid(row=5, column=0)
+            ttk.Label(self.content, text="Goods £", borderwidth=2, relief="groove").grid(row=6, column=0)
+            ttk.Label(self.content, text="Extras Info", borderwidth=2, relief="groove").grid(row=7, column=0)
+            ttk.Label(self.content, text="Extras Cost", borderwidth=2, relief="groove").grid(row=8, column=0)
+            ttk.Label(self.content, text="Delivery £", borderwidth=2, relief="groove").grid(row=9, column=0)
+            ttk.Label(self.content, text="Total £", borderwidth=2, relief="groove").grid(row=10, column=0)
 
-        backButton = ttk.Button(self.content, text="Back", command=self.list_order_screen)
-        backButton.grid(column="2", row="12", sticky=(W))
-        self.build_order_details_table()
+            ttk.Entry(self.content, text=self.orderIDText, state=DISABLED).grid(row=0, column=1)
+            ttk.Entry(self.content, text=str(self.selectedOrderDate), state=DISABLED).grid(row=1, column=1)
+            ttk.Entry(self.content, text=self.selectedOrderPicked, state=DISABLED).grid(row=2, column=1)
+            ttk.Entry(self.content, text=self.selectedOrderDelivered, state=DISABLED).grid(row=3, column=1)
+            ttk.Entry(self.content, text=self.selectedOrderInvoiced, state=DISABLED).grid(row=4, column=1)
+            ttk.Entry(self.content, text=self.selectedOrderPaid, state=DISABLED).grid(row=5, column=1)
+            ttk.Entry(self.content, text=self.selectedOrderGoodsCost, state=DISABLED).grid(row=6, column=1)
+            ttk.Entry(self.content, text=self.selectedOrderExtrasInfo, state=DISABLED).grid(row=7, column=1)
+            ttk.Entry(self.content, text=self.selectedOrderExtrasCost, state=DISABLED).grid(row=8, column=1)
+            ttk.Entry(self.content, text=self.selectedOrderDeliveryCost, state=DISABLED).grid(row=9, column=1)
+            ttk.Entry(self.content, text=self.selectedOrderTotalCost, state=DISABLED).grid(row=10, column=1)
+
+            backButton = ttk.Button(self.content, text="Cancel", command=self.list_order_screen)
+            backButton.grid(column="2", row="12", sticky=(W))
+            self.build_order_details_table()
+            self.selectedOrderID.set('-1')
+        else:
+            messagebox.showerror("None Selected", "No order is selected.")
 
     def add_customer_screen(self):
         '''
@@ -562,29 +561,43 @@ class Screen(Tk):
         addButton = Button(self.content, text="Add", command=add).grid(row=13, column=0)  
 
         # Cancel button
-        cancelButton = Button(self.content, text="Back", command=self.login_screen).grid(row=13, column=1)  
+        cancelButton = Button(self.content, text="Cancel", command=self.list_customer_screen).grid(row=13, column=1)  
 
     def list_order_screen(self):
         '''
-        @author Joe Targett
-
         Renders Order Screen
         '''
-        self.clear_contents()
-        self.change_header(f'Orders - {self.selectedFirstName.get() + " " + self.selectedLastName.get()}')
+        if (self.selectedID.get() != '-1'):
+            self.clear_contents()
+            self.change_header(f'Orders - {self.selectedFirstName.get() + " " + self.selectedLastName.get()}')
+            
+            detailsButton = ttk.Button(self.content, text="Details", command=self.order_details_screen)
+            detailsButton.grid(column="1", row="12", sticky=(W))
+
+            backButton = ttk.Button(self.content, text="Cancel", command=self.list_customer_screen)
+            backButton.grid(column="2", row="12", sticky=(W))
+
+            ttk.Label(self.content, text="ID", borderwidth=2, relief="groove").grid(row=0, column=0)
+            ttk.Label(self.content, text="First Name", borderwidth=2, relief="groove").grid(row=1, column=0)
+            ttk.Label(self.content, text="Last Name", borderwidth=2, relief="groove").grid(row=2, column=0)
+            ttk.Label(self.content, text="Postcode", borderwidth=2, relief="groove").grid(row=3, column=0)
+            ttk.Label(self.content, text="Landline", borderwidth=2, relief="groove").grid(row=4, column=0)
+            ttk.Label(self.content, text="Mobile", borderwidth=2, relief="groove").grid(row=5, column=0)
+
+            ttk.Entry(self.content, text=self.selectedID, state=DISABLED).grid(row=0, column=1)
+            ttk.Entry(self.content, text=self.selectedFirstName, state=DISABLED).grid(row=1, column=1)
+            ttk.Entry(self.content, text=self.selectedLastName, state=DISABLED).grid(row=2, column=1)
+            ttk.Entry(self.content, text=self.selectedPostcode, state=DISABLED).grid(row=3, column=1)
+            ttk.Entry(self.content, text=self.selectedLandline, state=DISABLED).grid(row=4, column=1)
+            ttk.Entry(self.content, text=self.selectedMobile, state=DISABLED).grid(row=5, column=1)
+
+            self.build_order_table()
+        else:
+            messagebox.showerror("None Selected", "No customer is selected.")
         
-        detailsButton = ttk.Button(self.content, text="Details", command=self.order_details_screen)
-        detailsButton.grid(column="1", row="12", sticky=(W))
-
-        backButton = ttk.Button(self.content, text="Back", command=self.list_customer_screen)
-        backButton.grid(column="2", row="12", sticky=(W))
-
-        self.build_order_table()
 
     def list_customer_screen(self):
         '''
-      
-
         Renders customer list screen
         '''
         self.clear_contents()

@@ -1,3 +1,4 @@
+import sys
 from tkinter import DISABLED, Tk, ttk, messagebox, N, S, E, W, Frame, StringVar, Button
 from utils import *
 from functools import partial
@@ -90,6 +91,9 @@ class Screen(Tk):
         self.content.rowconfigure(11, weight=1)
         self.content.rowconfigure(12, weight=1)
 
+    def quit(self):
+        sys.exit()
+
     def validate_login(self, username : str, password : str) -> bool:
         '''
         Sends login information to the Database server and sends result of login.
@@ -138,7 +142,7 @@ class Screen(Tk):
         validateLogin = partial(self.validate_login, username, password)
         loginButton = Button(self.content, text="Login", command=validateLogin)
         loginButton.grid(row=4, column=0, sticky=(E))
-        cancelButton = Button(self.content, text="Cancel", command=exit)
+        cancelButton = Button(self.content, text="Cancel", command=self.quit)
         cancelButton.grid(row=4, column=1, sticky=(W))
         if len(self.header.winfo_children()) > 1:
             for i in self.header.winfo_children():

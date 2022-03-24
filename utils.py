@@ -3,7 +3,7 @@ import os
 
 class Database():
 
-    def __init__(self, server = 'localhost', port = '1443', database = 'NymptonFoodHub', UID = False, PWD = False):
+    def __init__(self, database = 'NymptonFoodHub', UID = False, PWD = False):
         '''Sets up database object by initialising a connection to the database'''
         try:
             self.connection = odbc.connect(f"Driver={'{SQL Server}' if os.name == 'nt' else '{ODBC Driver 17 for SQL Server}'};"
